@@ -360,7 +360,12 @@ public class PlayActivity extends AppCompatActivity {
      */
     void setNewAudioFile() {
         // Set TextViews
-        mTitleTV.setText(mAudioFile.getTitle());
+//        mTitleTV.setText(mAudioFile.getTitle());
+        android.media.MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+        mmr.setDataSource(mAudioFile.getPath());
+
+        String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        mTitleTV.setText(title);
         mTimeTV.setText(Utils.formatTime(mAudioFile.getTime(), mAudioFile.getTime()));
         mAlbumTV.setText(mAudioFile.getAlbumTitle());
 

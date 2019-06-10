@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.session.MediaSessionManager;
 import android.net.Uri;
@@ -537,11 +538,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
 
         Bitmap notificationCover;
-        if (activeAudio.getCoverPath() == null) {
+        android.media.MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+        mmr.setDataSource(activeAudio.getPath());
+        byte [] data = mmr.getEmbeddedPicture();
+
+        if (data == null) {
             notificationCover = BitmapFactory.decodeResource(getResources(), R.drawable.empty_cover_grey_blue);
         } else {
-            notificationCover = BitmapFactory.decodeFile(activeAudio.getCoverPath());
+            notificationCover = BitmapFactory.decodeByteArray(data, 0, data.length);
         }
+
+        String tracktitle = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
 
         Intent startActivityIntent = new Intent(this, PlayActivity.class);
         startActivityIntent.setData(ContentUris.withAppendedId(AnchorContract.AudioEntry.CONTENT_URI, activeAudio.getId()));
@@ -566,7 +573,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .setSmallIcon(R.drawable.ic_notification_new)
                 // Set Notification content information
                 .setContentText(activeAudio.getAlbumTitle())
-                .setContentTitle(activeAudio.getTitle())
+                .setContentTitle(tracktitle)
                 // Set the intent for the activity that is launched on click
                 .setContentIntent(launchIntent)
                 // Set the visibility for the lock screen
@@ -626,9 +633,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             if (mMediaPlayer != null && mMediaPlayer.isPlaying()) transportControls.pause();
             else transportControls.play();
         } else if (actionString.equalsIgnoreCase(ACTION_FORWARD)) {
-            forward(30);
+            forward(10);
         } else if (actionString.equalsIgnoreCase(ACTION_BACKWARD)) {
-            backward(30);
+            backward(10);
         }
     }
 
